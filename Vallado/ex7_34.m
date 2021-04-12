@@ -44,11 +44,12 @@
       fprintf(1,' r2 %15.10f  %15.10f  %15.10f\n',r2 );
       fprintf(1,' r3 %15.10f  %15.10f  %15.10f\n',r3 );
 
-      % just needs to be in days - so precision isn't lost
-      jd1 = 0.0/86400.0;
-      jd2 = (60.0 + 16.48)/86400.0;
-      jd3 = (120.0 + 33.04)/86400.0;
+      % just needs to be in secs - so precision isn't lost
+      jd1 = 0.0; %/86400.0;
+      jd2 = (60.0 + 16.48); %/86400.0;
+      jd3 = (120.0 + 33.04); %/86400.0;
 
+      % use t1, t2, t3 as secs for greater accuracy
       [v2h, theta,theta1,copa, errorh ] =  hgibbs ( r1,r2,r3,jd1,jd2,jd3 );
 
       fprintf(1,' v2h %15.9f   %15.9f   %15.9f km/s \n\n\n',v2h );
@@ -110,7 +111,7 @@ pause;
         fprintf(1,'    coplanar        gibbs      err flg             hgibbs      errflg \n');
         while t2 < period * 0.45
             if t2 < period * 0.001
-               t2= t2 + period*0.00005;
+               t2= t2 + period*0.000005;
               else
                 if t2 < period * 0.006
                    t2= t2 + period*0.001;
@@ -132,16 +133,17 @@ pause;
             t3= 2.0*t2;
 
 
-            [r1,v1,error] =  kepler  ( r,v, t1 );
-            [r2,v2,error] =  kepler  ( r,v, t2 );
-            [r3,v3,error] =  kepler  ( r,v, t3 );
+            [r1,v1] =  kepler  ( r,v, t1 );
+            [r2,v2] =  kepler  ( r,v, t2 );
+            [r3,v3] =  kepler  ( r,v, t3 );
 
             [v2g, theta,theta1,copa, errorg] = gibbs( r1,r2,r3);
 
             % just needs to be in days - so precision isn't lost
-            jd1 = t1/86400.0;
-            jd2 = t2/86400.0;
-            jd3 = t3/86400.0;
+            jd1 = t1; %/86400.0;
+            jd2 = t2; %/86400.0;
+            jd3 = t3; %/86400.0;
+            % use t1, t2, t3 as secs for greater accuracy
             [v2h, theta,theta1,copa, errorh ] =  hgibbs ( r1,r2,r3,jd1,jd2,jd3 );
 
 %v2 = v2 / velkmps;

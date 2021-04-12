@@ -109,4 +109,40 @@
     fprintf(1,'sum res 2 %11.7f  rms %11.7f  sum res /7 %11.7f \n',sum(res'*res),rms,conv);
     fprintf(1,'adjusted cov %11.7f  %11.7f \n',conv*sqrt(atai(1,1)),conv*sqrt(atai(2,2)) );
 
-        
+
+    
+    % example
+    xo=[1 2 3 4 5 6 7 8]';
+    yo=[1 1 2 3 3 4 4 6]';
+    i = [1;1;1;1;1;1;1;1];
+    a = [i xo];
+    b = [yo];
+    
+    w1 = 1.0/ 0.1; % 0.1
+    w2 = 1.0/ 0.02; % 0.02
+  %  w1 = 1.0;
+  %  w2 = 1.0;
+    
+    w(1,1) = w1;  % assume 10 5 and 2 % accruacy for the 2 sensors
+    w(2,2) = w2;
+    w(3,3) = w1;
+    w(4,4) = w2;
+    w(5,5) = w1;
+    w(6,6) = w2;
+    w(7,7) = w1;
+    w(8,8) = w2;
+
+    a'*w*a
+    
+    covinv = inv(a'*w*a)
+    
+    a'*yo
+    
+    inv(a'*w*a)
+    
+    inv(a'*w*a) * a'*yo
+    
+    sqrt(covinv(1,1))
+    sqrt(covinv(2,2))
+    
+    

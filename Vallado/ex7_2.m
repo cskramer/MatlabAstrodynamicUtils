@@ -42,11 +42,11 @@
 
     convrt = pi / (180*3600.0);
     
-    casenum = 2;
+    casenum = 2;  % 2 book
     
 %    typerun = 'l'; % laplace
-%    typerun = 'g'; % gauss
-    typerun = 'd'; % doubler
+    typerun = 'g'; % gauss
+%    typerun = 'd'; % doubler
 %    typerun = 'o'; % gooding
 
     switch casenum
@@ -155,9 +155,42 @@
             ddpsi = 0.0;
             ddeps = 0.0;
         case 3
-            xx;
+            filedat =load('Sat11Ex1.dat');
+        case 4
+            filedat =load('Sat11Ex2.dat');
+        case 5 
+            filedat =load('Sat11Ex3.dat');
+        case 6
+            filedat =load('Sat11Ex4.dat');
+        case 7
+            filedat =load('Sat11Ex5.dat');
+        case 8
+            filedat =load('Sat11Ex6.dat');
+        case 9
+            filedat =load('Sat11Ex7.dat');
     end; % switch
 
+    
+    obs1 = 62; %62 
+    obs2 = 70; %70  72
+    obs3 = 74; %74 102
+
+    % set eop parameters for new cases
+    if casenum >= 3
+        dut1  =  0; %-0.6096413;
+        dat   = 34; % leap second in July 2012
+        xp    =  0.0; %137495 * convrt;
+        yp    =  0.0; %342416 * convrt;
+        lod   =  0.0;
+        timezone= 0;
+        terms = 0;
+        ddpsi = 0.0;
+        ddeps = 0.0;
+
+        obs1 = 1; %62 
+        obs2 = 2; %70  72
+        obs3 = 3; %74 102
+    end;
     
      % ------ read all the data in and process
      numobs = size(filedat,1); % just get # of rows
@@ -176,34 +209,32 @@
      declarr   = filedat(:,11)/rad; % rad 
 
      for j = 1:numobs  % 5 iterations for now
-        obsrecarr(j,1).jd = jday(yeararr(j),monarr(j),dayarr(j),hrarr(j),minarr(j),secarr(j));
+        [obsrecarr(j,1).jd,obsrecarr(j,1).jdf] = jday(yeararr(j),monarr(j),dayarr(j),hrarr(j),minarr(j),secarr(j));
         obsrecarr(j,1).latgd = latarr(j);  % assumes the same sensor site
         obsrecarr(j,1).lon = lonarr(j);  
         obsrecarr(j,1).alt = altarr(j);  
-        [ut1, tut1, jdut1, utc, tai, tt, ttt, jdtt, tdb, ttdb, jdtdb ] ...
+        [ut1, tut1, jdut1,jdut1frac, utc, tai, tt, ttt, jdtt,jdttfrac, tdb, ttdb, jdtdb,jdtdbfrac ] ...
               = convtime ( yeararr(j), monarr(j), dayarr(j), hrarr(j), minarr(j), secarr(j), 0, dut1, dat );
         [obsrecarr(j,1).rs,obsrecarr(j,1).vs] = site ( latarr(j),lonarr(j),altarr(j) );
         obsrecarr(j,1).ttt = ttt;  
-        obsrecarr(j,1).jdut1 = jdut1;  
+        obsrecarr(j,1).jdut1 = jdut1;
+        obsrecarr(j,1).jdut1frac = jdut1frac;
         obsrecarr(j,1).xp = xp;  % rad
         obsrecarr(j,1).yp = yp;  
         obsrecarr(j,1).rtasc = rtascarr(j);
         obsrecarr(j,1).decl = declarr(j);
      end
     
-    obs1 = 62;
-    obs2 = 70;  % 72
-    obs3 = 74; % 102
-     
+
     rtasc1 = obsrecarr(obs1,1).rtasc;  
     rtasc2 = obsrecarr(obs2,1).rtasc;  
     rtasc3 = obsrecarr(obs3,1).rtasc;  
     decl1 = obsrecarr(obs1,1).decl;  
     decl2 = obsrecarr(obs2,1).decl;  
     decl3 = obsrecarr(obs3,1).decl;  
-    jd1 = obsrecarr(obs1,1).jd;  
-    jd2 = obsrecarr(obs2,1).jd;  
-    jd3 = obsrecarr(obs3,1).jd;  
+    jd1 = obsrecarr(obs1,1).jd+obsrecarr(obs1,1).jdf;  
+    jd2 = obsrecarr(obs2,1).jd+obsrecarr(obs2,1).jdf;  
+    jd3 = obsrecarr(obs3,1).jd+obsrecarr(obs3,1).jdf;  
     rs1 = obsrecarr(obs1,1).rs;  % ecef
     vs1 = obsrecarr(obs1,1).vs;
     rs2 = obsrecarr(obs2,1).rs;
@@ -212,20 +243,23 @@
     vs3 = obsrecarr(obs3,1).vs;
     rs1
     
-    fprintf(1,'ans coes %11.4f%11.4f%13.9f%13.7f%11.5f%11.5f%11.5f%11.5f\n',...
-        p,a,ecc,incl*rad,omega*rad,argp*rad,nu*rad,m*rad );
+    if casenum < 3
+        fprintf(1,'ans coes %11.4f%11.4f%13.9f%13.7f%11.5f%11.5f%11.5f%11.5f\n',...
+            p,a,ecc,incl*rad,omega*rad,argp*rad,nu*rad,m*rad );
+    end;        
+    [year,mon,day,hr,min,second] = invjday(obsrecarr(obs1,1).jd, obsrecarr(obs1,1).jdf);
 
-    utc = sec;
+    utc = second;
     ut1 = utc+dut1;
     tai = utc+dat;
     tt  = tai+32.184;
-    jdut1 = jday(year,mon,day,hr,min,ut1);
-    jdtt  = jday(year,mon,day,hr,min,tt);
+    [jdut1,jdut1frac] = jday(year,mon,day,hr,min,ut1);
+    [jdtt,jdttfrac]  = jday(year,mon,day,hr,min,tt);
     ttt   =  (jdtt-2451545.0)/36525.0;
     fprintf(1,'year %5i ',year);
     fprintf(1,'mon %4i ',mon);
     fprintf(1,'day %3i ',day);
-    fprintf(1,'hr %3i:%2i:%8.6f\n',hr,min,sec );
+    fprintf(1,'hr %3i:%2i:%8.6f\n',hr,min,second );
     fprintf(1,'dut1 %8.6f s',dut1);
     fprintf(1,' dat %3i s',dat);
     fprintf(1,' xp %8.6f "',xp);
@@ -234,20 +268,20 @@
 
     % -------------- convert each site vector from ecef to eci -----------------
     a = [0;0;0];   % dummy acceleration variable for the ecef2eci routine
-    [year,mon,day,hr,min,sec] = invjday(jd1);
-    [ut1, tut1, jdut1, utc, tai, tt, ttt, jdtt, tdb, ttdb, jdtdb ] ...
+    [year,mon,day,hr,min,sec] = invjday(jd1,0.0);
+    [ut1, tut1, jdut1,jdut1frac, utc, tai, tt, ttt, jdtt,jdttfrac, tdb, ttdb, jdtdb,jdtdbfrac ] ...
         = convtime ( year, mon, day, hr, min, sec, timezone, dut1, dat );
-    [rsite1,vseci,aeci] = ecef2eci(rs1,vs1,a,ttt,jdut1,lod,xp,yp,2,ddpsi,ddeps);
+    [rsite1,vseci,aeci] = ecef2eci(rs1,vs1,a,ttt,jdut1+jdut1frac,lod,xp,yp,2,ddpsi,ddeps);
 
-    [year,mon,day,hr,min,sec] = invjday(jd2);
-    [ut1, tut1, jdut1, utc, tai, tt, ttt, jdtt, tdb, ttdb, jdtdb ] ...
+    [year,mon,day,hr,min,sec] = invjday(jd2,0.0);
+    [ut1, tut1, jdut1,jdut1frac, utc, tai, tt, ttt, jdtt,jdttfrac, tdb, ttdb, jdtdb,jdtdbfrac ] ...
         = convtime ( year, mon, day, hr, min, sec, timezone, dut1, dat );
-    [rsite2,vseci,aeci] = ecef2eci(rs2,vs2,a,ttt,jdut1,lod,xp,yp,2,ddpsi,ddeps);
+    [rsite2,vseci,aeci] = ecef2eci(rs2,vs2,a,ttt,jdut1+jdut1frac,lod,xp,yp,2,ddpsi,ddeps);
 
-    [year,mon,day,hr,min,sec] = invjday(jd3);
-    [ut1, tut1, jdut1, utc, tai, tt, ttt, jdtt, tdb, ttdb, jdtdb ] ...
+    [year,mon,day,hr,min,sec] = invjday(jd3,0.0);
+    [ut1, tut1, jdut1,jdut1frac, utc, tai, tt, ttt, jdtt,jdttfrac, tdb, ttdb, jdtdb,jdtdbfrac ] ...
         = convtime ( year, mon, day, hr, min, sec, timezone, dut1, dat );
-    [rsite3,vseci,aeci] = ecef2eci(rs3,vs3,a,ttt,jdut1,lod,xp,yp,2,ddpsi,ddeps); % eci
+    [rsite3,vseci,aeci] = ecef2eci(rs3,vs3,a,ttt,jdut1+jdut1frac,lod,xp,yp,2,ddpsi,ddeps); % eci
 
 
     % ---------------------- run the angles-only routine ------------------
@@ -274,17 +308,17 @@
 
     % -------------- write out answer --------------
     fprintf(1,'\n\ninputs: \n\n');
-    [latgc,latgd,lon,alt] = ijk2ll ( rs1 ); % need to use ecef one!!
+    [latgc,latgd,lon,alt] = ecef2ll ( rs1 ); % need to use ecef one!!
     fprintf(1,'Site obs1 %11.7f %11.7f %11.7f km  lat %11.7f lon %11.7f alt %11.7f  \n', rsite1, latgd*rad, lon*rad, alt*1000 );
-    [latgc,latgd,lon,alt] = ijk2ll ( rs2 );
+    [latgc,latgd,lon,alt] = ecef2ll ( rs2 );
     fprintf(1,'Site obs2 %11.7f %11.7f %11.7f km  lat %11.7f lon %11.7f alt %11.7f  \n', rsite2, latgd*rad, lon*rad, alt*1000 );
-    [latgc,latgd,lon,alt] = ijk2ll ( rs3 );
+    [latgc,latgd,lon,alt] = ecef2ll ( rs3 );
     fprintf(1,'Site obs3 %11.7f %11.7f %11.7f km  lat %11.7f lon %11.7f alt %11.7f  \n', rsite3, latgd*rad, lon*rad, alt*1000 );
-    [year,mon,day,hr,min,sec] = invjday ( jd1 );
+    [year,mon,day,hr,min,sec] = invjday ( jd1, 0.0 );
     fprintf(1,'obs#1 %4i %2i %2i %2i %2i %6.3f ra %11.7f de %11.7f  \n', year,mon,day,hr,min,sec, rtasc1*rad, decl1*rad );
-    [year,mon,day,hr,min,sec] = invjday ( jd2 );
+    [year,mon,day,hr,min,sec] = invjday ( jd2, 0.0 );
     fprintf(1,'obs#2 %4i %2i %2i %2i %2i %6.3f ra %11.7f de %11.7f  \n', year,mon,day,hr,min,sec, rtasc2*rad, decl2*rad );
-    [year,mon,day,hr,min,sec] = invjday ( jd3 );
+    [year,mon,day,hr,min,sec] = invjday ( jd3, 0.0 );
     fprintf(1,'Obs#3 %4i %2i %2i %2i %2i %6.3f ra %11.7f de %11.7f  \n', year,mon,day,hr,min,sec, rtasc3*rad, decl3*rad );
 
     fprintf(1,'\nsolution by %s \n\n', processtype);

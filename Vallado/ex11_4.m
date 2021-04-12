@@ -97,7 +97,6 @@
 
       fprintf(1,'change frequency deltav %11.7f m/s timing  %11.7f min \n',2*deltav*1000, 2*tdrift/60);
 
-      x = x/0;
         
         
 

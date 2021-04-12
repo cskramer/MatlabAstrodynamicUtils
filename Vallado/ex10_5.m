@@ -29,7 +29,7 @@
     constastro; 
     
     % read in GEOS data
-%     fid = fopen('C:\Codes\LIBRARY\Matlab\geos6.inp');
+%     fid = fopen('d:\Codes\LIBRARY\Matlab\geos6.inp');
 %     obsarr = textscan(fid,'%d %d %d %d %d %d %d %d %f %f %f %f ', 'Delimiter', ' ', 'Headerlines', 1); % these are read in as cells
 %     fclose(fid);
 % 
@@ -44,7 +44,7 @@
 %     elarr   = obsarr{12end(:)/rad; % deg
 
 
-     filedat =load('C:\Codes\LIBRARY\Matlab\geos6a.inp');
+     filedat =load('d:\Codes\LIBRARY\Matlab\geos6a.inp');
      numobs = size(filedat,1); % just get # of rows
 
      %load data into x y z arrays
@@ -70,14 +70,14 @@
      [rs,vs] = site ( latgd,lon,alt );
 
      for j = 1:numobs  % 5 iterations for now
-        obsrecarr(j,1).time = jday(yeararr(j),monarr(j),dayarr(j),hrarr(j),minarr(j),secarr(j));
+        [obsrecarr(j,1).time, obsrecarr(j,1).timef] = jday(yeararr(j),monarr(j),dayarr(j),hrarr(j),minarr(j),secarr(j));
         obsrecarr(j,1).latgd = latgd;  % assumes the same sensor site
         obsrecarr(j,1).lon = lon;  
         obsrecarr(j,1).alt = alt;  
-        [ut1, tut1, jdut1, utc, tai, tt, ttt, jdtt, tdb, ttdb, jdtdb ] ...
+        [ut1, tut1, jdut1, jdut1frac, utc, tai, tt, ttt, jdtt, jdttfrac, tdb, ttdb, jdtdb, jdtdbfrac ] ...
               = convtime ( yeararr(j), monarr(j), dayarr(j), hrarr(j), minarr(j), secarr(j), 0, dut1, dat );
         obsrecarr(j,1).ttt = ttt;  
-        obsrecarr(j,1).jdut1 = jdut1;  
+        obsrecarr(j,1).jdut1 = jdut1 + jdut1frac;   % just keep together
         obsrecarr(j,1).xp = xp;  % rad
         obsrecarr(j,1).yp = yp;  
         obsrecarr(j,1).noiserng = 0.0925;  % km
@@ -111,7 +111,7 @@
         [ve2, theta,theta1,copa, error] = hgibbs( re1,re2,re3,obsrecarr(obsktr-1).jdut1,obsrecarr(obsktr).jdut1,obsrecarr(obsktr+1).jdut1 );         
 
         % move back to 1st time, not central time
-        dtsec = (obsrecarr(obsktr).time - obsrecarr(1).time) * 86400.0;  % s
+        dtsec = (obsrecarr(obsktr).time + obsrecarr(obsktr).timef - obsrecarr(1).time - obsrecarr(1).timef) * 86400.0;  % s
 %        [reci1, veci1] =  kepler ( re2, ve2, -dtsec );
         [reci1, veci1] =  pkepler ( re2, ve2, -dtsec, 0.0, 0.0 );
    fprintf(1,'re %16.8f %16.8f %16.8f km ',reci1 );
@@ -129,7 +129,7 @@
    
     numobs
     
-    jdepoch = obsrecarr(1,1).time;
+    jdepoch = obsrecarr(1,1).time + obsrecarr(1,1).timef;
 % use a vector that's farther off to see iteratins take effect
     reci = [5975.2904  2568.6400  3120.5845];
     veci = [3.983846  -2.071159  -5.917095];
@@ -249,7 +249,7 @@
  
     numobs
     
-    jdepoch = obsrecarr(1,1).time;
+    jdepoch = obsrecarr(1,1).time + obsrecarr(1,1).timef;
 % use vector from first 10 points
 %   reci = [5975.2904  2568.6400  3120.5845];
 %   veci = [3.983846  -2.071159  -5.917095];
